@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "ServerConnectionString": "Server=rmit.australiaeast.cloudapp.azure.com;Encrypt=False;Uid=s3886040_a1;Password=abc123"
+  }
+}
