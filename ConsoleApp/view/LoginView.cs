@@ -1,18 +1,43 @@
 ﻿
+using A1_ClassLibrary.Managers;
+using ConsoleApp1.view;
+using SimpleHashing.Net;
+
 namespace ConsoleApp.view;
 
 public class LoginView
 {
-/*    private Controller Controller { get; set; } 
-    public LoginView(Controller _controller) 
+    private DBManager _dBManager { get; set; }
+    public LoginView(DBManager dBManager)
     {
-        this.Controller = _controller;
-        Console.WriteLine("Enter Login ID:");
-        string login = getUserInput();
 
-        Console.WriteLine("Enter Password:");
-        string pass = ReadPassword();
-    }*/
+        _dBManager = dBManager;
+        bool loggingIn = true;
+        while (loggingIn) {
+            Console.WriteLine("Enter Login ID:");
+            string login = getUserInput();
+
+            Console.WriteLine("Enter Password:");
+            string pass = ReadPassword();
+
+            try
+            {
+                int loginInt = Int32.Parse(login);
+                bool match = _dBManager.CheckLogin(loginInt, pass);
+                if(match)
+                {
+                    // var bankView = new BankView(_dBManager);
+                    loggingIn = false;
+                }
+            }
+            catch (FormatException)
+            {
+                loggingIn = true;
+            }
+        }
+        
+        
+    }
 
     static private string getUserInput()
     {

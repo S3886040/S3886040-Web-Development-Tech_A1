@@ -1,6 +1,6 @@
 ﻿using A1_ClassLibrary.ModelDTO;
 
-namespace A1_ClassLibrary.modelDTO;
+namespace A1_ClassLibrary.ModelDTO;
 public class Customer
 {
 

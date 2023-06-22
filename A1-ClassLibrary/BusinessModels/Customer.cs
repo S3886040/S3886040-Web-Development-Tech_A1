@@ -1,6 +1,6 @@
 ﻿
 namespace A1_ClassLibrary.BusinessModels;
 
-internal class Customer
+public class Customer
 {
 }

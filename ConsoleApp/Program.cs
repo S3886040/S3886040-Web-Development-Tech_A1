@@ -3,16 +3,19 @@ using A1_ClassLibrary.Services;
 using Microsoft.Extensions.Configuration;
 
 using A1_ClassLibrary.Managers;
+using ConsoleApp.view;
+
 public static class Program
 {
     private static void Main()
     {
-        Console.WriteLine("Hello");
         var configuration = new ConfigurationBuilder().AddJsonFile("config.json").Build();
         var connectionString = configuration.GetConnectionString("ServerConnectionString");
 
         var DBManager = new DBManager(connectionString);
         WebService.GetAndSave(DBManager);
+
+        var login = new LoginView(DBManager);
 
     }
 }

@@ -1,8 +1,8 @@
 ﻿namespace A1_ClassLibrary.Managers;
 
-using A1_ClassLibrary.modelDTO;
 using A1_ClassLibrary.ModelDTO;
 using Microsoft.Data.SqlClient;
+using SimpleHashing.Net;
 using System;
 
 public class DBManager 
@@ -13,7 +13,26 @@ public class DBManager
         _connectionString = connectionString;
     }
 
-    public bool Any()
+    public bool CheckLogin(int loginID, String password)
+    {
+        bool match = false;
+        using var connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "select PasswordHash from Login where LoginID = @loginID";
+        command.Parameters.AddWithValue("loginID", loginID);
+        using (SqlDataReader reader = command.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                match = new SimpleHash().Verify(password, reader[0].ToString());
+            }
+        }
+        return match;
+    }
+
+    internal bool Any()
     {
         using var connection = new SqlConnection(_connectionString);
         connection.Open();

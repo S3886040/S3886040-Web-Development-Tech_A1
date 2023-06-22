@@ -1,7 +1,7 @@
 ﻿namespace A1_ClassLibrary.Services;
 
 using A1_ClassLibrary.Managers;
-using A1_ClassLibrary.modelDTO;
+using A1_ClassLibrary.ModelDTO;
 using Newtonsoft.Json;
 using System;
 
