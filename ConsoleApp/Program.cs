@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 using A1_ClassLibrary.Managers;
 using ConsoleApp.view;
+using A1_ClassLibrary.BusinessModels;
 
 public static class Program
 {
@@ -13,9 +14,10 @@ public static class Program
         var connectionString = configuration.GetConnectionString("ServerConnectionString");
 
         var DBManager = new DBManager(connectionString);
+        var CustomerManager = new CustomerManager(connectionString);
         WebService.GetAndSave(DBManager);
 
-        var login = new LoginView(DBManager);
+        var login = new LoginView(DBManager, CustomerManager);
 
     }
 }
