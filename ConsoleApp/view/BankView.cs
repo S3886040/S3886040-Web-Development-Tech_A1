@@ -3,6 +3,7 @@ using A1_ClassLibrary.Managers;
 using A1_ClassLibrary.BusinessModels;
 using ConsoleApp.UtilityMethods;
 using A1_ClassLibrary.Utilities;
+using Azure.Core;
 
 namespace ConsoleApp.view;
 
@@ -28,41 +29,51 @@ internal class BankView
         bool runMenu = true;
         while (runMenu)
         {
+            // Prints menu and takes in selection
             Console.WriteLine(menu);
-            Console.WriteLine("Enter an Option:");
-            var input = ConsoleMethods.GetUserInput();
-            int option = IntConverter(input);
+            int option = GetSelection("Enter an option: ");
+            // Deposit Option
             if (option == 1 && option.IsInRange(1, 6))
             {
-                int i = 1;
-                List<Account> accounts;
-
                 Console.WriteLine("---Deposit---");
-                accounts = _customerManager.GetAccounts();
-                accounts.ForEach(account => 
-                Console.WriteLine(
-                 $"""
-                 {i++}.{"\t"}{DepositOrSavings(account.AccountType)}{"\t"}{account.AccountNumber}{"\t"}{account.Balance:C}
-                 """
-                 ));
-                i = 1;
-                Console.WriteLine("\nSelect an Account:");
-                input = ConsoleMethods.GetUserInput();
-                int inputInt = IntConverter(input);
+                List<Account> accounts = GetAndPrintAccounts();
+
+                int inputInt = GetSelection("Select an Account: ");
                 if (inputInt != -1)
                 {
                     Console.WriteLine($"""{DepositOrSavings(accounts[inputInt -1].AccountType)}, Balance:{accounts[inputInt -1].Balance:C}, Available Balance:{accounts[inputInt -1].Balance:C} """);
-                    Console.WriteLine("\nEnter Ammount:");
-                    input = ConsoleMethods.GetUserInput();
-                    decimal amount = IntConverter(input);
+                    decimal amount = GetSelection("Enter Amount: ");
                     if (amount != -1)
                     {
-                        decimal balance = _customerManager.Deposit(accounts[inputInt], amount);
+                        Console.WriteLine("Enter Comment (max length 30): ");
+                        string comment = ConsoleMethods.GetUserInput();
+                        decimal balance = _customerManager.Deposit(accounts[inputInt - 1], amount, comment);
                         Console.WriteLine($"""Deposit of {amount:C} was successful, balance is now {balance:C}""");
                     }
 
                 }
 
+            }
+
+            //Withdraw Option
+            if(option == 2)
+            {
+                Console.WriteLine("---Withdraw---");
+                List<Account> accounts = GetAndPrintAccounts();
+
+                int selection = GetSelection("Select an Account: ");
+                if (selection != -1)
+                {
+                    Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].Balance:C} """);
+                    decimal amount = GetSelection("Enter Amount: ");
+                    if (amount != -1)
+                    {
+                        Console.WriteLine("Enter Comment (max length 30): ");
+                        string comment = ConsoleMethods.GetUserInput();
+                        decimal balance = _customerManager.Withdraw(accounts[selection - 1], amount, comment);
+                        Console.WriteLine($"""Withdrawal of {amount:C} was successful, balance is now {balance:C}""");
+                    }
+                }
             }
         }
 
@@ -94,6 +105,30 @@ internal class BankView
             option = -1;
         }
         return option;
+    }
+
+    private List<Account> GetAndPrintAccounts()
+    {
+        int i = 1;
+        List<Account> accounts;
+
+        accounts = _customerManager.GetAccounts();
+        accounts.ForEach(account =>
+        Console.WriteLine(
+         $"""
+         {i++}.{"\t"}{DepositOrSavings(account.AccountType)}{"\t"}{account.AccountNumber}{"\t"}{account.Balance:C}
+         """
+         ));
+
+        return accounts;
+    }
+
+    private int GetSelection(string request)
+    {
+        Console.WriteLine(request);
+        string input = ConsoleMethods.GetUserInput();
+        int inputInt = IntConverter(input);
+        return inputInt;
     }
 }
 

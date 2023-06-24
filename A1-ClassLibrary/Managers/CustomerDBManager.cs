@@ -4,6 +4,7 @@ using A1_ClassLibrary.Utilities;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
+using System.Transactions;
 
 namespace A1_ClassLibrary.Managers;
 
@@ -94,5 +95,24 @@ internal class CustomerDBManager
         decimal amount = (decimal) command.ExecuteScalar();
 
         return amount;
+    }
+
+    internal void AddTransaction(BusinessModels.Transaction tran)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText =
+            "insert into [Transaction] values (@type, @accNum, @desAccNum, @amount, @comment, @time ) ";
+        command.Parameters.AddWithValue("type", tran.TransactionType);
+        command.Parameters.AddWithValue("accNum", tran.AccountNumber);
+        command.Parameters.AddWithValue("desAccNum", tran.DestinationAccountNumber);
+        command.Parameters.AddWithValue("amount", tran.Amount);
+        command.Parameters.AddWithValue("comment", tran.Comment);
+        command.Parameters.AddWithValue("time", tran.TransactionTimeUtc);
+
+
+        command.ExecuteNonQuery();
     }
 }
