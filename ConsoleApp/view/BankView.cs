@@ -41,7 +41,7 @@ internal class BankView
                 int inputInt = GetSelection("Select an Account: ");
                 if (inputInt != -1)
                 {
-                    Console.WriteLine($"""{DepositOrSavings(accounts[inputInt -1].AccountType)}, Balance:{accounts[inputInt -1].Balance:C}, Available Balance:{accounts[inputInt -1].Balance:C} """);
+                    Console.WriteLine($"""{DepositOrSavings(accounts[inputInt -1].AccountType)}, Balance:{accounts[inputInt -1].Balance:C}, Available Balance:{accounts[inputInt -1].GetAvailableBalance():C} """);
                     decimal amount = GetSelection("Enter Amount: ");
                     if (amount != -1)
                     {
@@ -64,14 +64,21 @@ internal class BankView
                 int selection = GetSelection("Select an Account: ");
                 if (selection != -1)
                 {
-                    Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].Balance:C} """);
+                    Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
                     decimal amount = GetSelection("Enter Amount: ");
                     if (amount != -1)
                     {
                         Console.WriteLine("Enter Comment (max length 30): ");
                         string comment = ConsoleMethods.GetUserInput();
                         decimal balance = _customerManager.Withdraw(accounts[selection - 1], amount, comment);
-                        Console.WriteLine($"""Withdrawal of {amount:C} was successful, balance is now {balance:C}""");
+                        if(balance != -1)
+                        {
+                            Console.WriteLine($"""Withdrawal of {amount:C} was successful, balance is now {balance:C}""");
+                        } else
+                        {
+                            Console.WriteLine("Invalid Input.");
+                        }
+                        
                     }
                 }
             }

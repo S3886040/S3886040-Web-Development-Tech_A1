@@ -49,24 +49,12 @@ internal class CustomerDBManager
         command.CommandText = "SELECT * FROM Account WHERE CustomerID = @custID";
         command.Parameters.AddWithValue("custID", customerID);
 
-        using var adapter = new SqlDataAdapter(command);
-
-        var table = new DataTable();
-        adapter.Fill(table);
-/*        foreach(DataRow row in table.Rows) 
-        {
-            char c = row["AccountType"].ToChar();
-            if (row["AccountType"] is string)
-            {
-                Console.WriteLine(row["AccountType"]);
-            }
-        }*/
-        var accounts = new List<Account>();
         return command.GetDataTable().Select().Select(x => new Account
         {
             AccountNumber = x.Field<int>("AccountNumber"),
             AccountType = x.Field<string>("AccountType"),
             Balance = x.Field<decimal>("Balance"),
+            _dbManager = this
         }).ToList();
 
     }
