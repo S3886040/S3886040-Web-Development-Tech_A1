@@ -85,7 +85,7 @@ internal class CustomerDBManager
         return amount;
     }
 
-    internal void AddTransaction(BusinessModels.Transaction tran)
+    internal async Task AddTransaction(BusinessModels.Transaction tran)
     {
         using var connection = new SqlConnection(_connectionString);
         connection.Open();
@@ -95,12 +95,40 @@ internal class CustomerDBManager
             "insert into [Transaction] values (@type, @accNum, @desAccNum, @amount, @comment, @time ) ";
         command.Parameters.AddWithValue("type", tran.TransactionType);
         command.Parameters.AddWithValue("accNum", tran.AccountNumber);
-        command.Parameters.AddWithValue("desAccNum", tran.DestinationAccountNumber);
+        command.Parameters.AddWithValue("desAccNum", tran.DestinationAccountNumber.GetObjectOrDbNull());
         command.Parameters.AddWithValue("amount", tran.Amount);
         command.Parameters.AddWithValue("comment", tran.Comment);
         command.Parameters.AddWithValue("time", tran.TransactionTimeUtc);
 
 
-        command.ExecuteNonQuery();
+        await command.ExecuteNonQueryAsync();
+    }
+
+    internal bool CheckAccountExists(int accNum)
+    {
+        using var connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "select count(*) from Account where AccountNumber = @accNum";
+        command.Parameters.AddWithValue("accNum", accNum);
+
+        var count = (int)command.ExecuteScalar();
+
+        return count > 0;
+    }
+
+    internal async Task AddAmount(decimal amount, int accNum) 
+    {
+        using var connection = new SqlConnection(_connectionString);
+        connection.Open();
+
+        using var command = connection.CreateCommand();
+        command.CommandText = "update Account set Balance = Balance + @amount where AccountNumber = @accNum";
+        command.Parameters.AddWithValue("accNum", accNum);
+        command.Parameters.AddWithValue("amount", amount);
+
+        await command.ExecuteNonQueryAsync();
+
     }
 }

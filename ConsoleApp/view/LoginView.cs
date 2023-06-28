@@ -5,7 +5,7 @@ using ConsoleApp.UtilityMethods;
 namespace ConsoleApp.view;
 public class LoginView
 {
-    private DBManager _dBManager;
+    private readonly DBManager _dBManager;
     public LoginView(DBManager dBManager, CustomerManager customerManager)
     {
         var bankView = new BankView(12345678, customerManager);
@@ -36,9 +36,9 @@ public class LoginView
 
 
     }
-    
 
-    static private string ReadPassword()
+
+    private static string ReadPassword()
     {
         string password = "";
         ConsoleKeyInfo key;

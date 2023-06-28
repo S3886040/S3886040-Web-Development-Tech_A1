@@ -3,7 +3,6 @@ using A1_ClassLibrary.Managers;
 using A1_ClassLibrary.BusinessModels;
 using ConsoleApp.UtilityMethods;
 using A1_ClassLibrary.Utilities;
-using Azure.Core;
 
 namespace ConsoleApp.view;
 
@@ -47,8 +46,14 @@ internal class BankView
                     {
                         Console.WriteLine("Enter Comment (max length 30): ");
                         string comment = ConsoleMethods.GetUserInput();
-                        decimal balance = _customerManager.Deposit(accounts[inputInt - 1], amount, comment);
-                        Console.WriteLine($"""Deposit of {amount:C} was successful, balance is now {balance:C}""");
+                        Task<decimal> balance = _customerManager.Deposit(accounts[inputInt - 1], amount, comment);
+                        if(balance.Result != -1)
+                        {
+                            Console.WriteLine($"""Deposit of {amount:C} was successful, balance is now {balance.Result:C}""");
+                        } else
+                        {
+                            Console.WriteLine("Invalid Input");
+                        }
                     }
 
                 }
@@ -70,10 +75,10 @@ internal class BankView
                     {
                         Console.WriteLine("Enter Comment (max length 30): ");
                         string comment = ConsoleMethods.GetUserInput();
-                        decimal balance = _customerManager.Withdraw(accounts[selection - 1], amount, comment);
-                        if(balance != -1)
+                        Task<decimal> balance = _customerManager.Withdraw(accounts[selection - 1], amount, comment);
+                        if(balance.Result != -1)
                         {
-                            Console.WriteLine($"""Withdrawal of {amount:C} was successful, balance is now {balance:C}""");
+                            Console.WriteLine($"""Withdrawal of {amount:C} was successful, balance is now {balance.Result:C}""");
                         } else
                         {
                             Console.WriteLine("Invalid Input.");
@@ -81,12 +86,44 @@ internal class BankView
                         
                     }
                 }
+            } 
+            //Transfer Option
+            if(option == 3)
+            {
+                Console.WriteLine("---Transfer---");
+                List<Account> accounts = GetAndPrintAccounts();
+                int selection = GetSelection("Select an Account: ");
+
+                if(selection != -1)
+                {
+                    int destAccNum = GetSelection("Enter Dest. Account Number: ");
+                    if (_customerManager.CheckAccountExists(destAccNum) && destAccNum != accounts[selection - 1].AccountNumber)
+                    {
+                        Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
+                        decimal amount = GetSelection("Enter Amount: ");
+                        if (amount != -1) 
+                        {
+                            Console.WriteLine("Enter Comment (max length 30): ");
+                            string comment = ConsoleMethods.GetUserInput();
+                            Task<bool> done = _customerManager.Transfer(accounts[selection - 1], destAccNum, amount, comment);
+                            if (done.Result)
+                            {
+                                Console.WriteLine($"""Transfer of {amount:C} was successful.""");
+                            }
+                            else
+                            {
+                                Console.WriteLine("There was a problem with the transfer.");
+                            }
+                        }
+                    } else { Console.WriteLine("Account does not exist."); }
+
+                }
             }
         }
 
     }
     // Returns either the string "Deposit" or "Savings"
-    private string DepositOrSavings(string type)
+    private static string DepositOrSavings(string type)
     {
         string accType = "";
         if (type == "C")
@@ -104,7 +141,7 @@ internal class BankView
         return accType;
     }
 
-    private int IntConverter(string value)
+    private static int IntConverter(string value)
     {
         if (!int.TryParse(value, out var option))
         {
@@ -130,7 +167,7 @@ internal class BankView
         return accounts;
     }
 
-    private int GetSelection(string request)
+    private static int GetSelection(string request)
     {
         Console.WriteLine(request);
         string input = ConsoleMethods.GetUserInput();

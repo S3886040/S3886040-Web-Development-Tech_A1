@@ -17,7 +17,7 @@ public static class Program
         var CustomerManager = new CustomerManager(connectionString);
         WebService.GetAndSave(DBManager);
 
-        var login = new LoginView(DBManager, CustomerManager);
+        new LoginView(DBManager, CustomerManager);
 
     }
 }

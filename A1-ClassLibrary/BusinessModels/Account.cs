@@ -1,8 +1,5 @@
 ﻿
 using A1_ClassLibrary.Managers;
-using A1_ClassLibrary.ModelDTO;
-using System;
-using System.Reflection;
 
 namespace A1_ClassLibrary.BusinessModels;
 
@@ -28,7 +25,7 @@ public class Account
         Balance = balance;
     }
 
-    internal decimal Deposit(decimal amount, string comment)
+    internal async Task<decimal> Deposit(decimal amount, string comment)
     {
         var tran = new BusinessModels.Transaction()
         {
@@ -39,18 +36,18 @@ public class Account
             Comment = comment,
             TransactionTimeUtc = DateTime.Now
         };
-        _dbManager.AddTransaction(tran);
+        await _dbManager.AddTransaction(tran);
         UpdateBalance(Balance + amount);
         return Balance;
     }
 
-    internal decimal Withdraw(decimal amount, string comment)
+    internal async Task<decimal> Withdraw(decimal amount, string comment)
     {
-        _dbManager.AddTransaction(new BusinessModels.Transaction()
+        await _dbManager.AddTransaction(new BusinessModels.Transaction()
         {
             TransactionType = 'W',
             AccountNumber = AccountNumber,
-            DestinationAccountNumber = AccountNumber,
+            DestinationAccountNumber = null,
             Amount = amount,
             Comment = comment,
             TransactionTimeUtc = DateTime.Now
@@ -59,18 +56,34 @@ public class Account
 
         if (FreeTransactions == 0)
         {
-            _dbManager.AddTransaction(new BusinessModels.Transaction()
-            {
-                TransactionType = 'S',
-                AccountNumber = AccountNumber,
-                DestinationAccountNumber = AccountNumber,
-                Amount = 0.05M,
-                Comment = "Service Charge",
-                TransactionTimeUtc = DateTime.Now
-            });
-            UpdateBalance(Balance - 0.05M);
-            Balance = _dbManager.GetBalance(AccountNumber);
+            await AddServiceCharge();
+            Balance -= amount;
         } else
+        {
+            FreeTransactions -= 1;
+        }
+        return Balance;
+    }
+
+    internal async Task<decimal> Transfer(decimal amount, int destAcc, string comment)
+    {
+        await _dbManager.AddTransaction(new BusinessModels.Transaction()
+        {
+            TransactionType = 'T',
+            AccountNumber = AccountNumber,
+            DestinationAccountNumber = destAcc,
+            Amount = amount,
+            Comment = comment,
+            TransactionTimeUtc = DateTime.Now
+        });
+        UpdateBalance(Balance - amount);
+
+        if (FreeTransactions == 0)
+        {
+            await AddServiceCharge();
+            Balance -= amount;
+        }
+        else
         {
             FreeTransactions -= 1;
         }
@@ -87,6 +100,20 @@ public class Account
             availableBalance = Balance;
 
         return availableBalance;
+    }
+
+    private async Task AddServiceCharge()
+    {
+        await _dbManager.AddTransaction(new Transaction()
+        {
+            TransactionType = 'S',
+            AccountNumber = AccountNumber,
+            DestinationAccountNumber = AccountNumber,
+            Amount = 0.05M,
+            Comment = "Service Charge",
+            TransactionTimeUtc = DateTime.Now
+        });
+        UpdateBalance(Balance - 0.05M);
     }
 }
 
