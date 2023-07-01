@@ -3,7 +3,7 @@
 public class Transaction
 {
     public int TransactionID { get; set; }
-    public char TransactionType { get; set; }
+    public string TransactionType { get; set; }
     public int AccountNumber { get; set; }
     public int? DestinationAccountNumber { get; set; }
     public decimal Amount { get; set; }

@@ -2,9 +2,8 @@
 using A1_ClassLibrary.BusinessModels;
 using A1_ClassLibrary.Utilities;
 using Microsoft.Data.SqlClient;
-using System;
 using System.Data;
-using System.Transactions;
+
 
 namespace A1_ClassLibrary.Managers;
 
@@ -130,5 +129,35 @@ internal class CustomerDBManager
 
         await command.ExecuteNonQueryAsync();
 
+    }
+
+    internal List<BusinessModels.Transaction> GetTransactions(int accNum, int pageNum)
+    {
+        using var connection = new SqlConnection(_connectionString);
+
+        using var command = connection.CreateCommand();
+        command.CommandText = 
+            "DECLARE @PageNumber AS INT " +
+            "DECLARE @RowsOfPage AS INT " +
+            "SET @PageNumber=@pageNum " +
+            "SET @RowsOfPage=4 " +
+            "SELECT * FROM [Transaction] " +
+            "WHERE AccountNumber = @accNum " +
+            "ORDER BY TransactionTimeUtc " +
+            "OFFSET (@PageNumber-1)*@RowsOfPage ROWS " +
+            "FETCH NEXT @RowsOfPage ROWS ONLY";
+        command.Parameters.AddWithValue("accNum", accNum);
+        command.Parameters.AddWithValue("pageNum", pageNum);
+
+        return command.GetDataTable().Select().Select(x => new BusinessModels.Transaction
+        {
+            TransactionID = x.Field<int>("TransactionID"),
+            TransactionType = x.Field<string>("TransactionType"),
+            AccountNumber = x.Field<int>("AccountNumber"),
+            DestinationAccountNumber = x.Field<int?>("DestinationAccountNumber"),
+            Amount = x.Field<decimal>("Amount"),
+            TransactionTimeUtc = x.Field<DateTime>("TransactionTimeUtc"),
+            Comment = x.Field<string>("Comment")
+        }).ToList();
     }
 }

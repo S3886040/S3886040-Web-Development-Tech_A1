@@ -8,31 +8,30 @@ public class LoginView
     private readonly DBManager _dBManager;
     public LoginView(DBManager dBManager, CustomerManager customerManager)
     {
-        var bankView = new BankView(12345678, customerManager);
-        /*        _dBManager = dBManager;
-                bool loggingIn = true;
-                while (loggingIn) {
-                    Console.WriteLine("Enter Login ID:");
-                    string login = ConsoleMethods.GetUserInput();
+        _dBManager = dBManager;
+        bool loggingIn = true;
+        while (loggingIn)
+        {
+            Console.WriteLine("Enter Login ID:");
+            string login = ConsoleMethods.GetUserInput();
 
-                    Console.WriteLine("Enter Password:");
-                    string pass = ReadPassword();
+            Console.WriteLine("Enter Password:");
+            string pass = ReadPassword();
 
-                    try
-                    {
-                        int loginInt = Int32.Parse(login);
-                        bool match = _dBManager.CheckLogin(loginInt, pass);
-                        if(match)
-                        {
-                            var bankView = new BankView(loginInt);
-                            loggingIn = false;
-                        }
-                    }
-                    catch (FormatException)
-                    {
-                        Console.WriteLine("Invalid Input, Try Again");
-                    }
-                }*/
+            try
+            {
+                int loginInt = Int32.Parse(login);
+                bool match = _dBManager.CheckLogin(loginInt, pass);
+                if (match)
+                {
+                    var bankView = new BankView(loginInt, customerManager);
+                }
+            }
+            catch (FormatException)
+            {
+                Console.WriteLine("Invalid Input, Try Again");
+            }
+        }
 
 
     }

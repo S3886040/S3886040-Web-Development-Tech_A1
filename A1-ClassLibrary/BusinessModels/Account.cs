@@ -9,9 +9,14 @@ public class Account
     public string AccountType { get; set; }
     internal int CustomerID { get; set; }
     public decimal Balance { get; set; }
-    internal int FreeTransactions { get; set; } = 2;
+    internal int FreeTransactions { get; set; }
 
     internal CustomerDBManager _dbManager { get; set; }
+
+    public Account() 
+    { 
+        FreeTransactions = 2;
+    }
 
     internal decimal GetBalance()
     {
@@ -29,9 +34,9 @@ public class Account
     {
         var tran = new BusinessModels.Transaction()
         {
-            TransactionType = 'D',
+            TransactionType = "D",
             AccountNumber = AccountNumber,
-            DestinationAccountNumber = AccountNumber,
+            DestinationAccountNumber = null,
             Amount = amount,
             Comment = comment,
             TransactionTimeUtc = DateTime.Now
@@ -45,7 +50,7 @@ public class Account
     {
         await _dbManager.AddTransaction(new BusinessModels.Transaction()
         {
-            TransactionType = 'W',
+            TransactionType = "W",
             AccountNumber = AccountNumber,
             DestinationAccountNumber = null,
             Amount = amount,
@@ -53,11 +58,10 @@ public class Account
             TransactionTimeUtc = DateTime.Now
         });
         UpdateBalance(Balance - amount);
-
+        
         if (FreeTransactions == 0)
         {
             await AddServiceCharge();
-            Balance -= amount;
         } else
         {
             FreeTransactions -= 1;
@@ -69,7 +73,7 @@ public class Account
     {
         await _dbManager.AddTransaction(new BusinessModels.Transaction()
         {
-            TransactionType = 'T',
+            TransactionType = "T",
             AccountNumber = AccountNumber,
             DestinationAccountNumber = destAcc,
             Amount = amount,
@@ -81,7 +85,6 @@ public class Account
         if (FreeTransactions == 0)
         {
             await AddServiceCharge();
-            Balance -= amount;
         }
         else
         {
@@ -106,7 +109,7 @@ public class Account
     {
         await _dbManager.AddTransaction(new Transaction()
         {
-            TransactionType = 'S',
+            TransactionType = "S",
             AccountNumber = AccountNumber,
             DestinationAccountNumber = AccountNumber,
             Amount = 0.05M,

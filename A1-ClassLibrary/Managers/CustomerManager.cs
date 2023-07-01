@@ -1,6 +1,7 @@
 ﻿
 using A1_ClassLibrary.BusinessModels;
 using Azure;
+using System.Collections.Generic;
 
 namespace A1_ClassLibrary.Managers;
 
@@ -31,7 +32,7 @@ public class CustomerManager
         decimal balance = -1;
         if (amount != 0)
         {
-            
+
             int index = 0;
             while (_accounts[index] != account) { index++; }
             var task = _accounts[index].Deposit(amount, comment);
@@ -41,7 +42,7 @@ public class CustomerManager
         return balance;
     }
 
-    public async Task<decimal>  Withdraw(Account account, decimal amount, string comment)
+    public async Task<decimal> Withdraw(Account account, decimal amount, string comment)
     {
         decimal newBalance = -1;
         int index = 0;
@@ -49,7 +50,6 @@ public class CustomerManager
         var task = _accounts[index].Withdraw(amount, comment);
         if (_accounts[index].GetAvailableBalance() >= amount)
             newBalance = await task;
-
 
         return newBalance;
     }
@@ -67,7 +67,7 @@ public class CustomerManager
 
         var tran = new Transaction()
         {
-            TransactionType = 'T',
+            TransactionType = "T",
             AccountNumber = destAccNum,
             DestinationAccountNumber = null,
             Amount = amount,
@@ -78,7 +78,7 @@ public class CustomerManager
         {
             var tasks = new List<Task>()
             {
-                _accounts[index].Withdraw(amount, comment),
+                _accounts[index].Transfer(amount, destAccNum, comment),
                 _dbManager.AddAmount(amount, destAccNum),
                 _dbManager.AddTransaction(tran)
             };
@@ -88,5 +88,11 @@ public class CustomerManager
         };
 
         return success;
+    }
+
+    public List<Transaction> GetTransactions(int accNum, int pageNum)
+    {
+        var list = _dbManager.GetTransactions(accNum, pageNum);
+        return list;
     }
 }

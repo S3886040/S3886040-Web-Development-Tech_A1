@@ -1,11 +1,12 @@
 ﻿namespace A1_ClassLibrary.Managers;
 
 using A1_ClassLibrary.ModelDTO;
+using A1_ClassLibrary.Utilities;
 using Microsoft.Data.SqlClient;
 using SimpleHashing.Net;
 using System;
 
-public class DBManager 
+public class DBManager
 {
     private readonly String _connectionString;
     public DBManager(String connectionString)
@@ -49,24 +50,14 @@ public class DBManager
     {
         using var connection = new SqlConnection(_connectionString);
         connection.Open();
-        Console.WriteLine(customer.CustomerID);
         using var command = connection.CreateCommand();
         command.CommandText =
             "insert into Customer (CustomerID, Name, Address, City, Postcode) values (@customerID, @name, @address, @city, @postcode)";
         command.Parameters.AddWithValue("customerID", customer.CustomerID);
         command.Parameters.AddWithValue("name", customer.Name);
-        if(customer.Address != null) 
-            command.Parameters.AddWithValue("address", customer.Address);
-        else
-            command.Parameters.AddWithValue("address", DBNull.Value);
-        if( customer.City != null)
-            command.Parameters.AddWithValue("city", customer.City);
-        else
-            command.Parameters.AddWithValue("city", DBNull.Value);
-        if(customer.Postcode != null)
-            command.Parameters.AddWithValue("postcode", customer.Postcode);
-        else
-            command.Parameters.AddWithValue("postcode", DBNull.Value);
+        command.Parameters.AddWithValue("address", customer.Address.GetObjectOrDbNull());
+        command.Parameters.AddWithValue("city", customer.City.GetObjectOrDbNull());
+        command.Parameters.AddWithValue("postcode", customer.Postcode.GetObjectOrDbNull());
         command.ExecuteNonQuery();
     }
 
@@ -99,7 +90,7 @@ public class DBManager
         command.Parameters.AddWithValue("accountNumber", tran.AccountNumber);
         command.Parameters.AddWithValue("destinationAccountNumber", tran.DestinationAccountNumber);
         command.Parameters.AddWithValue("amount", tran.Amount);
-        if(tran.Comment != null)
+        if (tran.Comment != null)
             command.Parameters.AddWithValue("comment", tran.Comment);
         else
             command.Parameters.AddWithValue("comment", DBNull.Value);

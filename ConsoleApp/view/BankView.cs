@@ -38,36 +38,39 @@ internal class BankView
                 List<Account> accounts = GetAndPrintAccounts();
 
                 int inputInt = GetSelection("Select an Account: ");
-                if (inputInt != -1)
+                if (inputInt != -1 && inputInt.IsInRange(1, accounts.Count))
                 {
-                    Console.WriteLine($"""{DepositOrSavings(accounts[inputInt -1].AccountType)}, Balance:{accounts[inputInt -1].Balance:C}, Available Balance:{accounts[inputInt -1].GetAvailableBalance():C} """);
+                    Console.WriteLine($"""{DepositOrSavings(accounts[inputInt - 1].AccountType)}, Balance:{accounts[inputInt - 1].Balance:C}, Available Balance:{accounts[inputInt - 1].GetAvailableBalance():C} """);
                     decimal amount = GetSelection("Enter Amount: ");
                     if (amount != -1)
                     {
                         Console.WriteLine("Enter Comment (max length 30): ");
                         string comment = ConsoleMethods.GetUserInput();
                         Task<decimal> balance = _customerManager.Deposit(accounts[inputInt - 1], amount, comment);
-                        if(balance.Result != -1)
+                        if (balance.Result != -1)
                         {
                             Console.WriteLine($"""Deposit of {amount:C} was successful, balance is now {balance.Result:C}""");
-                        } else
+                        }
+                        else
                         {
                             Console.WriteLine("Invalid Input");
                         }
                     }
 
+
                 }
+                else { Console.WriteLine("Account Doesn't exist"); }
 
             }
 
             //Withdraw Option
-            if(option == 2)
+            if (option == 2)
             {
                 Console.WriteLine("---Withdraw---");
                 List<Account> accounts = GetAndPrintAccounts();
 
                 int selection = GetSelection("Select an Account: ");
-                if (selection != -1)
+                if (selection != -1 && selection.IsInRange(1, accounts.Count))
                 {
                     Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
                     decimal amount = GetSelection("Enter Amount: ");
@@ -76,32 +79,34 @@ internal class BankView
                         Console.WriteLine("Enter Comment (max length 30): ");
                         string comment = ConsoleMethods.GetUserInput();
                         Task<decimal> balance = _customerManager.Withdraw(accounts[selection - 1], amount, comment);
-                        if(balance.Result != -1)
+                        if (balance.Result != -1)
                         {
                             Console.WriteLine($"""Withdrawal of {amount:C} was successful, balance is now {balance.Result:C}""");
-                        } else
+                        }
+                        else
                         {
                             Console.WriteLine("Invalid Input.");
                         }
-                        
+
                     }
                 }
-            } 
+                else { Console.WriteLine("Account Doesn't exist"); }
+            }
             //Transfer Option
-            if(option == 3)
+            if (option == 3)
             {
                 Console.WriteLine("---Transfer---");
                 List<Account> accounts = GetAndPrintAccounts();
                 int selection = GetSelection("Select an Account: ");
 
-                if(selection != -1)
+                if (selection != -1 && selection.IsInRange(1, accounts.Count))
                 {
                     int destAccNum = GetSelection("Enter Dest. Account Number: ");
-                    if (_customerManager.CheckAccountExists(destAccNum) && destAccNum != accounts[selection - 1].AccountNumber)
+                    if (destAccNum != -1 && _customerManager.CheckAccountExists(destAccNum) && destAccNum != accounts[selection - 1].AccountNumber)
                     {
                         Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
                         decimal amount = GetSelection("Enter Amount: ");
-                        if (amount != -1) 
+                        if (amount != -1)
                         {
                             Console.WriteLine("Enter Comment (max length 30): ");
                             string comment = ConsoleMethods.GetUserInput();
@@ -112,16 +117,68 @@ internal class BankView
                             }
                             else
                             {
-                                Console.WriteLine("There was a problem with the transfer.");
+                                Console.WriteLine("There was a problem with the transfer. Please Try again.");
                             }
                         }
-                    } else { Console.WriteLine("Account does not exist."); }
+                    }
+                    else if (destAccNum == accounts[selection - 1].AccountNumber)
+                    {
+                        Console.WriteLine("Cannot Transfer to the same account.");
+
+                    }
+                    else { Console.WriteLine("Account Doesn't exist"); }
 
                 }
+                else { Console.WriteLine("Account Doesn't exist"); }
+            }
+            // My Statement
+            if (option == 4)
+            {
+                Console.WriteLine("---My Statement---");
+                List<Account> accounts = GetAndPrintAccounts();
+                int selection = GetSelection("Select an Account: ");
+                if (selection != -1 && selection.IsInRange(1, accounts.Count))
+                {
+                    int pageNum = 1;  
+                    string input = "";
+
+                    while(input != "q")
+                    {
+                        List<Transaction> transactions = _customerManager.GetTransactions(accounts[selection - 1].AccountNumber, pageNum);
+                        Console.WriteLine("{0,-5}{1,-15}{2,-15}{3,-15}{4,-15:C}{5,-25}{6,-20}", "ID", "Type", "Account", "Destination", "Amount", "Time", "Comment");
+                        foreach (Transaction tran in transactions)
+                        {
+                            Console.WriteLine("{0,-5}{1,-15}{2,-15}{3,-15}{4,-15:C}{5,-25}{6,-20}",
+                                tran.TransactionID, TransactionType(tran.TransactionType), tran.AccountNumber, tran.DestinationAccountNumber, 
+                                tran.Amount, tran.TransactionTimeUtc, tran.Comment);
+                        }
+                        Console.WriteLine("Options: n (next) | p (previous) | q (quit) ");
+                        Console.WriteLine($"""PageNumber: {pageNum}""");
+                        Console.WriteLine("Enter Option: ");
+                        input = ConsoleMethods.GetUserInput();
+                        switch (input)
+                        {
+                            case "n":
+                                pageNum++;
+                                break;
+                            case "p":
+                                if(pageNum != 1)
+                                    pageNum--;
+                                break;
+                        }
+                    }
+
+                } else { Console.WriteLine("Account Doesn't exist"); }
+
+            }
+            if(option == 5)
+            {
+                runMenu = false;
             }
         }
 
     }
+
     // Returns either the string "Deposit" or "Savings"
     private static string DepositOrSavings(string type)
     {
@@ -139,6 +196,28 @@ internal class BankView
             accType = "Unknown";
         }
         return accType;
+
+    }
+
+    private static string TransactionType(string type)
+    {
+        string tranType = "";
+        switch (type)
+        {
+            case "D":
+                tranType = "Deposit";
+                break;
+            case "W":
+                tranType = "Withdraw";
+                break;
+            case "T":
+                tranType = "Transfer";
+                break;
+            case "S":
+                tranType = "Service Charge";
+                break;
+        }
+        return tranType;
     }
 
     private static int IntConverter(string value)
