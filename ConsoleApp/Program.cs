@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 
 using A1_ClassLibrary.Managers;
 using ConsoleApp.view;
-using A1_ClassLibrary.BusinessModels;
 
 public static class Program
 {

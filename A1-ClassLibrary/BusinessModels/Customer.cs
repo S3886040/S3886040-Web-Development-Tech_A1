@@ -1,14 +1,12 @@
 ﻿
-
-
 namespace A1_ClassLibrary.BusinessModels;
 
 internal class Customer
 {
-    internal int CustomerID { get; set; }
-    internal string Name { get; set; }
-    internal string Address { get; set; }
-    internal string City { get; set; }
-    internal string Postcode { get; set; }
+    internal int _customerID { get; set; }
+    internal string _name { get; set; }
+    internal string _address { get; set; }
+    internal string _city { get; set; }
+    internal string _postcode { get; set; }
 
 }

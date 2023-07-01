@@ -5,17 +5,17 @@ namespace A1_ClassLibrary.BusinessModels;
 
 public class Account
 {
-    public int AccountNumber { get; set; }
-    public string AccountType { get; set; }
-    internal int CustomerID { get; set; }
+    public required int AccountNumber { get; set; }
+    public required string AccountType { get; set; }
+    internal int _customerID { get; set; }
     public decimal Balance { get; set; }
-    internal int FreeTransactions { get; set; }
+    internal int _freeTransactions { get; set; }
 
     internal CustomerDBManager _dbManager { get; set; }
 
     public Account() 
-    { 
-        FreeTransactions = 2;
+    {
+        _freeTransactions = 2;
     }
 
     internal decimal GetBalance()
@@ -59,12 +59,12 @@ public class Account
         });
         UpdateBalance(Balance - amount);
         
-        if (FreeTransactions == 0)
+        if (_freeTransactions == 0)
         {
-            await AddServiceCharge();
+            await AddServiceCharge(0.05M);
         } else
         {
-            FreeTransactions -= 1;
+            _freeTransactions -= 1;
         }
         return Balance;
     }
@@ -82,13 +82,13 @@ public class Account
         });
         UpdateBalance(Balance - amount);
 
-        if (FreeTransactions == 0)
+        if (_freeTransactions == 0)
         {
-            await AddServiceCharge();
+            await AddServiceCharge(0.10M);
         }
         else
         {
-            FreeTransactions -= 1;
+            _freeTransactions -= 1;
         }
         return Balance;
     }
@@ -105,14 +105,14 @@ public class Account
         return availableBalance;
     }
 
-    private async Task AddServiceCharge()
+    private async Task AddServiceCharge(decimal charge)
     {
         await _dbManager.AddTransaction(new Transaction()
         {
             TransactionType = "S",
             AccountNumber = AccountNumber,
-            DestinationAccountNumber = AccountNumber,
-            Amount = 0.05M,
+            DestinationAccountNumber = null,
+            Amount = charge,
             Comment = "Service Charge",
             TransactionTimeUtc = DateTime.Now
         });

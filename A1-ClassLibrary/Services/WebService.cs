@@ -3,7 +3,6 @@
 using A1_ClassLibrary.Managers;
 using A1_ClassLibrary.ModelDTO;
 using Newtonsoft.Json;
-using System;
 
 public class WebService
 {
@@ -40,7 +39,7 @@ public class WebService
                 foreach (var tran in account.Transactions)
                 {
                     balance += tran.Amount;
-                    // Prefilling blank transaction items
+                    // Prefilling blank transaction items eg D fro deposit
                     tran.TransactionType = 'D';
                     tran.AccountNumber = account.AccountNumber;  
                     tran.DestinationAccountNumber = account.AccountNumber;

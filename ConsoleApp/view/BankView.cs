@@ -11,12 +11,12 @@ internal class BankView
     private string _loggedInUser;
     readonly private CustomerManager _customerManager;
 
-    public BankView(int loggedInUserID, CustomerManager customerManager)
+    public BankView(int loggedInUserID, CustomerManager customerManager, LoginView lView)
     {
 
         _customerManager = customerManager;
         _loggedInUser = _customerManager.LoginUser(loggedInUserID);
-        String menu = $"""
+        string menu = $"""
             --- {_loggedInUser} ---
             [1] Deposit
             [2] Withdraw
@@ -37,16 +37,16 @@ internal class BankView
                 Console.WriteLine("---Deposit---");
                 List<Account> accounts = GetAndPrintAccounts();
 
-                int inputInt = GetSelection("Select an Account: ");
-                if (inputInt != -1 && inputInt.IsInRange(1, accounts.Count))
+                int selection = GetSelection("Select an Account: ");
+                if ((selection != -1) && selection.IsInRange(1, accounts.Count))
                 {
-                    Console.WriteLine($"""{DepositOrSavings(accounts[inputInt - 1].AccountType)}, Balance:{accounts[inputInt - 1].Balance:C}, Available Balance:{accounts[inputInt - 1].GetAvailableBalance():C} """);
-                    decimal amount = GetSelection("Enter Amount: ");
+                    Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
+                    decimal amount = GetAmount("Enter Amount: ");
                     if (amount != -1)
                     {
                         Console.WriteLine("Enter Comment (max length 30): ");
                         string comment = ConsoleMethods.GetUserInput();
-                        Task<decimal> balance = _customerManager.Deposit(accounts[inputInt - 1], amount, comment);
+                        Task<decimal> balance = _customerManager.Deposit(accounts[selection - 1], amount, comment);
                         if (balance.Result != -1)
                         {
                             Console.WriteLine($"""Deposit of {amount:C} was successful, balance is now {balance.Result:C}""");
@@ -56,8 +56,6 @@ internal class BankView
                             Console.WriteLine("Invalid Input");
                         }
                     }
-
-
                 }
                 else { Console.WriteLine("Account Doesn't exist"); }
 
@@ -70,10 +68,10 @@ internal class BankView
                 List<Account> accounts = GetAndPrintAccounts();
 
                 int selection = GetSelection("Select an Account: ");
-                if (selection != -1 && selection.IsInRange(1, accounts.Count))
+                if ((selection != -1) && selection.IsInRange(1, accounts.Count))
                 {
                     Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
-                    decimal amount = GetSelection("Enter Amount: ");
+                    decimal amount = GetAmount("Enter Amount: ");
                     if (amount != -1)
                     {
                         Console.WriteLine("Enter Comment (max length 30): ");
@@ -85,7 +83,7 @@ internal class BankView
                         }
                         else
                         {
-                            Console.WriteLine("Invalid Input.");
+                            Console.WriteLine("Insufficient Funds.");
                         }
 
                     }
@@ -105,7 +103,7 @@ internal class BankView
                     if (destAccNum != -1 && _customerManager.CheckAccountExists(destAccNum) && destAccNum != accounts[selection - 1].AccountNumber)
                     {
                         Console.WriteLine($"""{DepositOrSavings(accounts[selection - 1].AccountType)}, Balance:{accounts[selection - 1].Balance:C}, Available Balance:{accounts[selection - 1].GetAvailableBalance():C} """);
-                        decimal amount = GetSelection("Enter Amount: ");
+                        decimal amount = GetAmount("Enter Amount: ");
                         if (amount != -1)
                         {
                             Console.WriteLine("Enter Comment (max length 30): ");
@@ -117,14 +115,13 @@ internal class BankView
                             }
                             else
                             {
-                                Console.WriteLine("There was a problem with the transfer. Please Try again.");
+                                Console.WriteLine("Insufficient Funds.");
                             }
                         }
                     }
                     else if (destAccNum == accounts[selection - 1].AccountNumber)
                     {
                         Console.WriteLine("Cannot Transfer to the same account.");
-
                     }
                     else { Console.WriteLine("Account Doesn't exist"); }
 
@@ -144,13 +141,15 @@ internal class BankView
 
                     while(input != "q")
                     {
+                        // Returns paginated list of transactions
                         List<Transaction> transactions = _customerManager.GetTransactions(accounts[selection - 1].AccountNumber, pageNum);
-                        Console.WriteLine("{0,-5}{1,-15}{2,-15}{3,-15}{4,-15:C}{5,-25}{6,-20}", "ID", "Type", "Account", "Destination", "Amount", "Time", "Comment");
+                        Console.WriteLine("{0,-5}{1,-20}{2,-15}{3,-15}{4,-15:C}{5,-25}{6,-20}", "ID", "Type", "Account", "Destination", "Amount", "Time", "Comment");
                         foreach (Transaction tran in transactions)
                         {
-                            Console.WriteLine("{0,-5}{1,-15}{2,-15}{3,-15}{4,-15:C}{5,-25}{6,-20}",
+                            var dateTime = tran.TransactionTimeUtc.ToString("MM/dd/yyyy h:mm tt");
+                            Console.WriteLine("{0,-5}{1,-20}{2,-15}{3,-15}{4,-15:C}{5,-25}{6,-20}",
                                 tran.TransactionID, TransactionType(tran.TransactionType), tran.AccountNumber, tran.DestinationAccountNumber, 
-                                tran.Amount, tran.TransactionTimeUtc, tran.Comment);
+                                tran.Amount, dateTime, tran.Comment);
                         }
                         Console.WriteLine("Options: n (next) | p (previous) | q (quit) ");
                         Console.WriteLine($"""PageNumber: {pageNum}""");
@@ -171,9 +170,18 @@ internal class BankView
                 } else { Console.WriteLine("Account Doesn't exist"); }
 
             }
+            // Logout
             if(option == 5)
             {
+                Console.Clear();
                 runMenu = false;
+            }
+            // Exit program
+            if(option == 6)
+            {
+                Console.WriteLine("Program ending.");
+                runMenu = false;
+                lView.EndProgram();
             }
         }
 
@@ -182,7 +190,7 @@ internal class BankView
     // Returns either the string "Deposit" or "Savings"
     private static string DepositOrSavings(string type)
     {
-        string accType = "";
+        string accType;
         if (type == "C")
         {
             accType = "Cheque";
@@ -199,6 +207,7 @@ internal class BankView
 
     }
 
+    //Returns a transaction type string depending on the input type
     private static string TransactionType(string type)
     {
         string tranType = "";
@@ -219,7 +228,7 @@ internal class BankView
         }
         return tranType;
     }
-
+    // Converts string to int and -1 if parse error found
     private static int IntConverter(string value)
     {
         if (!int.TryParse(value, out var option))
@@ -230,6 +239,7 @@ internal class BankView
         return option;
     }
 
+    // Gets accounts from the customer manager and prints to the console
     private List<Account> GetAndPrintAccounts()
     {
         int i = 1;
@@ -246,12 +256,27 @@ internal class BankView
         return accounts;
     }
 
+    // Gets a int as a selection from the user, and returns -1 if parse error found
     private static int GetSelection(string request)
     {
         Console.WriteLine(request);
         string input = ConsoleMethods.GetUserInput();
         int inputInt = IntConverter(input);
         return inputInt;
+    }
+
+    // Gets a decimal as an amount from the user, and returns -1 if parse error found
+    private static decimal GetAmount(string request)
+    {
+        Console.WriteLine(request);
+        string input = ConsoleMethods.GetUserInput();
+
+        if (!decimal.TryParse(input, out var decimalInput))
+        {
+            Console.WriteLine("Invalid input.");
+            decimalInput = -1;
+        }
+        return decimalInput;
     }
 }
 

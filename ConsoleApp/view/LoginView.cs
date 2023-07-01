@@ -6,11 +6,12 @@ namespace ConsoleApp.view;
 public class LoginView
 {
     private readonly DBManager _dBManager;
+    internal bool _running;
     public LoginView(DBManager dBManager, CustomerManager customerManager)
     {
         _dBManager = dBManager;
-        bool loggingIn = true;
-        while (loggingIn)
+        _running = true;
+        while (_running)
         {
             Console.WriteLine("Enter Login ID:");
             string login = ConsoleMethods.GetUserInput();
@@ -24,7 +25,7 @@ public class LoginView
                 bool match = _dBManager.CheckLogin(loginInt, pass);
                 if (match)
                 {
-                    var bankView = new BankView(loginInt, customerManager);
+                    var bankView = new BankView(loginInt, customerManager, this);
                 }
             }
             catch (FormatException)
@@ -36,6 +37,10 @@ public class LoginView
 
     }
 
+    public void EndProgram()
+    {
+        _running = false;
+    }
 
     private static string ReadPassword()
     {

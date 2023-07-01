@@ -9,8 +9,8 @@ namespace A1_ClassLibrary.Managers;
 
 internal class CustomerDBManager
 {
-    private readonly String _connectionString;
-    internal CustomerDBManager(String connectionString)
+    private readonly string _connectionString;
+    internal CustomerDBManager(string connectionString)
     {
         _connectionString = connectionString;
     }
@@ -31,11 +31,11 @@ internal class CustomerDBManager
         var customer = new Customer();
         foreach (DataRow row in table.Rows)
         {
-            customer.CustomerID = row.Field<int>("CustomerID");
-            customer.Name = row.Field<string>("Name");
-            customer.Address = row.Field<string>("Address");
-            customer.City = row.Field<string>("City");
-            customer.Postcode = row.Field<string>("Postcode");
+            customer._customerID = row.Field<int>("CustomerID");
+            customer._name = row.Field<string>("Name");
+            customer._address = row.Field<string>("Address");
+            customer._city = row.Field<string>("City");
+            customer._postcode = row.Field<string>("Postcode");
         }
         return customer;
     }
@@ -143,7 +143,7 @@ internal class CustomerDBManager
             "SET @RowsOfPage=4 " +
             "SELECT * FROM [Transaction] " +
             "WHERE AccountNumber = @accNum " +
-            "ORDER BY TransactionTimeUtc " +
+            "ORDER BY TransactionTimeUtc DESC " +
             "OFFSET (@PageNumber-1)*@RowsOfPage ROWS " +
             "FETCH NEXT @RowsOfPage ROWS ONLY";
         command.Parameters.AddWithValue("accNum", accNum);

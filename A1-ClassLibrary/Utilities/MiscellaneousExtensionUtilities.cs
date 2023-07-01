@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 
 namespace A1_ClassLibrary.Utilities;
 
+// MiscellaneousExtensionUtilities is taken from class material and used within the program
 public static class MiscellaneousExtensionUtilities
 {
     public static bool IsInRange(this int value, int min, int max) => value >= min && value <= max;
